@@ -1,7 +1,7 @@
 // ==========================================
 // App Main Controller (The Orchestrator)
 // ==========================================
-import './style.css';
+
 import { renderCapitalTab } from './components/CapitalTab.js';
 import { renderPortfolioTab } from './components/PortfolioTab.js';
 import { renderCashTab } from './components/CashTab.js';
@@ -9,15 +9,11 @@ import { renderGoalsTab } from './components/GoalsTab.js';
 import { renderDashboardTab } from './components/DashboardTab.js';
 
 function initialize_app() {
-
     const navButtons = document.querySelectorAll('.bottom-nav button');
-    // --- THIS IS THE MAIN FIX ---
-    // We are now looking for 'root' which exists in our index.html
-    const tabContentsContainer = document.getElementById('root');
+    const tabContentsContainer = document.getElementById('app-content');
     
-    // Check if the container was found before proceeding
     if (!tabContentsContainer) {
-        console.error("Critical Error: The root element with id 'root' was not found in the DOM.");
+        console.error("Critical Error: The root element with id 'app-content' was not found in the DOM.");
         return;
     }
     
@@ -26,19 +22,15 @@ function initialize_app() {
     let currentTabUnsubscribes = [];
 
     async function change_tab(tabId) {
-        // Update button styles
         navButtons.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabId);
         });
 
-        // Run all cleanup functions for the old tab
         currentTabUnsubscribes.forEach(unsub => unsub());
-        currentTabUnsubscribes = []; // Reset the list for the new tab
+        currentTabUnsubscribes = [];
 
-        // Clear the main content area
         tabContentsContainer.innerHTML = '';
 
-        // Render the new tab and pass it the new, empty cleanup list
         switch (tabId) {
             case 'dashboard':
                 await renderDashboardTab(tabContentsContainer, currentTabUnsubscribes);
@@ -70,6 +62,4 @@ function initialize_app() {
     change_tab(defaultTab);
 }
 
-// --- THIS IS THE SECOND FIX ---
-// We call the function directly. The new project setup handles the loading.
 initialize_app();

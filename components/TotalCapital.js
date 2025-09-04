@@ -1,17 +1,8 @@
-// services/firebase.js and capitalService.js imports remain the same
 import { db, onSnapshot, collection } from '../services/firebase.js';
 import { calculateTotalCapital } from '../services/capitalService.js';
 
-// --- NEW CODE ADDED HERE ---
-// Import the Chart object and the necessary components for a doughnut chart
-import { Chart, ArcElement, DoughnutController, Tooltip, Legend } from 'chart.js';
+// NOTE: The 'import Chart...' and 'Chart.register(...)' lines have been removed.
 
-// Register the components with Chart.js so it knows how to draw them
-Chart.register(ArcElement, DoughnutController, Tooltip, Legend);
-// --- END OF NEW CODE ---
-
-
-// The function now accepts the 'unsubscribes' array
 export function renderTotalCapital(container, unsubscribes) {
     container.innerHTML = `
         <div class="total-capital-card">
@@ -31,7 +22,7 @@ export function renderTotalCapital(container, unsubscribes) {
 
     async function updateView() {
         const capitalData = await calculateTotalCapital();
-        if (!capitalData) return; // Prevent errors if API is blocked
+        if (!capitalData) return;
 
         const totalCapital = capitalData.grandTotal;
         const percentage = ((totalCapital / GOAL) * 100).toFixed(1);
@@ -50,13 +41,12 @@ export function renderTotalCapital(container, unsubscribes) {
                 chartInstance.data.datasets[0].data = data.datasets[0].data;
                 chartInstance.update();
             } else {
-                // This line will now work correctly
+                // The 'Chart' object will now be available globally from the script tag in the HTML
                 chartInstance = new Chart(ctx, { type: 'doughnut', data: data, options: { cutout: '80%', plugins: { tooltip: { enabled: false }, legend: { display: false } } } });
             }
         }
     }
 
-    // --- NEW: Add the 'unsub' function returned by onSnapshot to our cleanup list ---
     unsubscribes.push(onSnapshot(collection(db, 'investments'), updateView));
     unsubscribes.push(onSnapshot(collection(db, 'cashMeasurements'), updateView));
     unsubscribes.push(onSnapshot(collection(db, 'manualAssets'), updateView));
