@@ -887,3 +887,101 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: #B3B3B3;
     margin-top: 4px;
 }
+
+/* === Performance Snapshot Component === */
+.performance-snapshot-card {
+    background-color: #2c2c2e;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.bars-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bar-row {
+    width: 100%;
+}
+
+.bar-label {
+    font-size: 14px;
+    color: #b0b0b0;
+    margin-bottom: 6px;
+}
+
+.bar {
+    height: 10px;
+    border-radius: 5px;
+    transition: width 0.5s ease-in-out;
+}
+
+/* Default Profit Mode */
+.bars-container:not(.loss-mode) .bar {
+    float: right; /* Grow from right to left */
+}
+.blue-bar { background-color: #007bff; }
+.green-bar { background-color: #28a745; }
+
+/* Loss Mode Styles */
+.bars-container.loss-mode .bar-row {
+    display: flex;
+    justify-content: flex-end;
+}
+.bars-container.loss-mode .blue-bar {
+    float: none;
+    direction: ltr; /* Ensure it grows left */
+}
+.bars-container.loss-mode .red-bar {
+    float: none;
+    background-color: #dc3545;
+    direction: rtl; /* Ensure it grows right */
+}
+.bars-container.loss-mode .loss-label {
+    text-align: right; /* Align the loss label to the right */
+}
+
+
+.momentum-container {
+    flex-shrink: 0;
+}
+
+.momentum-box {
+    width: 120px;
+    height: 100px;
+    border-radius: 10px;
+    border: 2px solid;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.momentum-box.profit-positive {
+    border-color: #28a745;
+    color: #28a745;
+}
+.momentum-box.profit-negative {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.momentum-arrow {
+    font-size: 24px;
+    line-height: 1;
+}
+.momentum-delta {
+    font-size: 16px;
+}
+.momentum-label {
+    font-size: 12px;
+    font-weight: normal;
+    color: #b0b0b0;
+}

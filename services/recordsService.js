@@ -15,6 +15,7 @@ export async function updateAndFetchRecords() {
         troughProfitILS: { value: Infinity, date: null },
         peakProfitUSD: { value: -Infinity, date: null },
         troughProfitUSD: { value: Infinity, date: null },
+        previousProfitILS: null
     };
 
     // 1. Get existing records from Firestore
@@ -51,6 +52,10 @@ export async function updateAndFetchRecords() {
         records.troughProfitUSD = { value: totalProfitLossUSD, date: today };
         hasChanges = true;
     }
+
+    // עדכן את הרווח הקודם
+    records.previousProfitILS = totalProfitLossILS;
+    hasChanges = true;
 
     // 4. If any record was updated, save the changes to Firestore
     if (hasChanges) {
