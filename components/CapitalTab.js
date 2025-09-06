@@ -61,15 +61,155 @@ export function renderCapitalTab(container, unsubscribes) {
 
     function addFormEventListeners() {
         categoriesContainer.addEventListener('click', async (e) => {
+            // Toggle category header
             const header = e.target.closest('.category-header');
             if (header) {
                 header.classList.toggle('active');
                 header.nextElementSibling.classList.toggle('active');
                 return;
             }
-            if (e.target.classList.contains('add-item-btn')) { /* ... */ }
-            if (e.target.classList.contains('delete-asset-btn')) { /* ... */ }
-            if (e.target.classList.contains('cancel-add-btn')) { /* ... */ }
+
+            // Add new item
+            if (e.target.classList.contains('add-item-btn')) {
+                e.preventDefault();
+                const categoryContent = e.target.closest('.category-content');
+                const categoryName = categoryContent.dataset.categoryName;
+                
+                console.log('Add item clicked for category:', categoryName); // Debug log
+                
+                // Check if there's already a new item form open
+                if (categoryContent.querySelector('.new-item')) {
+                    alert('סיים להוסיף את הפריט הנוכחי לפני הוספת פריט חדש');
+                    return;
+                }
+                
+                // Create input form for new item
+                const newItemHTML = `
+                    <div class="asset-item new-item" style="background: #2d2d2d; border: 1px solid #555; border-radius: 12px; padding: 20px; margin: 15px 0;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" class="new-asset-name" placeholder="שם הנכס החדש" 
+                                   style="flex: 2; padding: 12px; border: 1px solid #555; border-radius: 25px; font-size: 14px; box-sizing: border-box; font-family: inherit; background: #333; color: white; height: 44px;" />
+                            <input type="number" class="new-asset-value" placeholder="שווי ב-₪" 
+                                   style="flex: 1; padding: 12px; border: 1px solid #555; border-radius: 25px; font-size: 14px; box-sizing: border-box; font-family: inherit; background: #333; color: white; height: 44px;" />
+                            <button type="button" class="save-new-item-btn" 
+                                    style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 500; font-size: 14px; transition: all 0.2s ease; font-family: inherit; height: 44px; white-space: nowrap;">
+                                שמור
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Insert before the add button
+                e.target.insertAdjacentHTML('beforebegin', newItemHTML);
+                e.target.style.display = 'none'; // Hide add button temporarily
+                
+                // Focus on name input
+                const nameInput = categoryContent.querySelector('.new-asset-name');
+                if (nameInput) {
+                    nameInput.focus();
+                }
+                return;
+            }
+
+            // Save new item
+            if (e.target.classList.contains('save-new-item-btn')) {
+                e.preventDefault();
+                const newItem = e.target.closest('.new-item');
+                const categoryContent = e.target.closest('.category-content');
+                const categoryName = categoryContent.dataset.categoryName;
+                const addButton = categoryContent.querySelector('.add-item-btn');
+                
+                // Remember which categories are open
+                const openCategories = [];
+                document.querySelectorAll('.category-header.active').forEach(header => {
+                    const categoryName = header.querySelector('span').textContent;
+                    openCategories.push(categoryName);
+                });
+                
+                const nameInput = newItem.querySelector('.new-asset-name');
+                const valueInput = newItem.querySelector('.new-asset-value');
+                
+                const name = nameInput.value.trim();
+                const value = parseFloat(valueInput.value) || 0;
+                
+                if (!name) {
+                    alert('אנא הכנס שם לנכס');
+                    nameInput.focus();
+                    return;
+                }
+                
+                // Generate unique ID for the new asset
+                const assetId = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                try {
+                    // Import required functions
+                    const { doc, setDoc } = await import('../services/firebase.js');
+                    
+                    // Save to Firebase
+                    await setDoc(doc(db, "manualAssets", assetId), {
+                        name: name,
+                        value: value,
+                        category: categoryName,
+                        isCustom: true
+                    });
+                    
+                    console.log('Asset saved successfully:', { name, value, category: categoryName }); // Debug log
+                    
+                    // Remove the form and show add button again
+                    newItem.remove();
+                    addButton.style.display = 'block';
+                    
+                    // Reload the form to show the new item
+                    await loadManualAssetsForm();
+                    
+                    // Restore open categories
+                    openCategories.forEach(catName => {
+                        const headers = document.querySelectorAll('.category-header');
+                        headers.forEach(header => {
+                            if (header.querySelector('span').textContent === catName) {
+                                header.classList.add('active');
+                                header.nextElementSibling.classList.add('active');
+                            }
+                        });
+                    });
+                    
+                    alert('הנכס נוסף בהצלחה!');
+                    
+                } catch (error) {
+                    console.error('Error adding new asset:', error);
+                    alert('שגיאה בהוספת הנכס. נסה שוב.');
+                    
+                    // Show add button again even on error
+                    newItem.remove();
+                    addButton.style.display = 'block';
+                }
+                return;
+            }
+
+            // Delete asset
+            if (e.target.classList.contains('delete-asset-btn')) {
+                e.preventDefault();
+                const assetId = e.target.dataset.assetId;
+                const assetItem = e.target.closest('.asset-item');
+                const assetName = assetItem.querySelector('label').textContent;
+                
+                if (confirm(`האם אתה בטוח שברצונך למחוק את "${assetName}"?`)) {
+                    try {
+                        // Import required functions
+                        const { doc, deleteDoc } = await import('../services/firebase.js');
+                        await deleteDoc(doc(db, "manualAssets", assetId));
+                        
+                        // Remove from UI
+                        assetItem.remove();
+                        alert('הנכס נמחק בהצלחה!');
+                        
+                    } catch (error) {
+                        console.error('Error deleting asset:', error);
+                        alert('שגיאה במחיקת הנכס. נסה שוב.');
+                    }
+                }
+                return;
+            }
         });
     }
 
