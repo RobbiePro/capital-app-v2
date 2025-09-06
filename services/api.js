@@ -68,7 +68,7 @@ export async function fetchStockPrice(symbol) {
         } else {
             // Otherwise, use the existing Marketstack logic for stocks
             try {
-                const url = `http://api.marketstack.com/v1/eod/latest?access_key=${MARKETSTACK_API_KEY}&symbols=${symbol}`;
+                const url = `https://api.marketstack.com/v1/eod/latest?access_key=${MARKETSTACK_API_KEY}&symbols=${symbol}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     console.warn(`Could not retrieve price for ${symbol}. Status: ${response.status}`);
