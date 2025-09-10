@@ -53,9 +53,9 @@ export async function updateAndFetchRecords() {
         hasChanges = true;
     }
 
-    // עדכן את הרווח הקודם
-    records.previousProfitILS = totalProfitLossILS;
-    hasChanges = true;
+    // *** אל תעדכן את previousProfitILS כאן! ***
+    // // records.previousProfitILS = totalProfitLossILS;
+    // // hasChanges = true;
 
     // 4. If any record was updated, save the changes to Firestore
     if (hasChanges) {
@@ -68,4 +68,16 @@ export async function updateAndFetchRecords() {
 
     // 5. Return the latest records (either old or newly updated)
     return records;
+}
+
+/**
+ * Updates the previousProfitILS value in the Firestore document.
+ * @param {number} newValue - The new previous profit/loss value in ILS.
+ */
+export async function updatePreviousProfitILS(newValue) {
+    try {
+        await setDoc(RECORDS_DOC_REF, { previousProfitILS: newValue }, { merge: true });
+    } catch (error) {
+        console.error("Error updating previousProfitILS:", error);
+    }
 }

@@ -1,7 +1,5 @@
-// services/api.js
-
-// --- Configuration for Marketstack (for stocks) ---
-const MARKETSTACK_API_KEY = "0b7659025cc49517a5234eb99c963e4e";
+// --- NEW: Configuration for Finnhub (for stocks) ---
+const FINNHUB_API_KEY = "d2t1o0pr01qkuv3iu840d2t1o0pr01qkuv3iu84g";
 const CACHE_DURATION_MINUTES = 15;
 
 // Caching mechanisms (no changes needed here)
@@ -9,7 +7,9 @@ const inMemoryStockCache = {};
 const pendingRequests = {};
 
 // --- NEW: A dedicated function for fetching Bitcoin price from CoinGecko ---
+// (This function remains unchanged)
 async function fetchBitcoinPriceFromCoinGecko() {
+    // ... (no changes in this function)
     const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';
     try {
         const response = await fetch(url);
@@ -18,7 +18,6 @@ async function fetchBitcoinPriceFromCoinGecko() {
             return null;
         }
         const data = await response.json();
-        // CoinGecko returns: {"bitcoin": {"usd": 68000.50}}
         if (data && data.bitcoin && data.bitcoin.usd) {
             return data.bitcoin.usd;
         } else {
@@ -34,7 +33,7 @@ async function fetchBitcoinPriceFromCoinGecko() {
 
 /**
  * Fetches the latest stock price for a given symbol.
- * It now uses CoinGecko for Bitcoin and Marketstack for everything else.
+ * It now uses CoinGecko for Bitcoin and Finnhub for everything else.
  */
 export async function fetchStockPrice(symbol) {
     if (!symbol) return null;
@@ -59,33 +58,36 @@ export async function fetchStockPrice(symbol) {
         return await pendingRequests[symbol];
     }
 
-    // --- THIS IS THE HYBRID LOGIC ---
+    // --- THIS IS THE HYBRID LOGIC WITH FINNHUB ---
     const fetchPromise = (async () => {
         let price = null;
         // If the symbol is BTC-USD, use the special CoinGecko function
         if (symbol === 'BTC-USD') {
             price = await fetchBitcoinPriceFromCoinGecko();
         } else {
-            // Otherwise, use the existing Marketstack logic for stocks
+            // --- NEW FINNHUB LOGIC ---
+            // Otherwise, use the new Finnhub logic for stocks
             try {
-                const url = `https://api.marketstack.com/v1/eod/latest?access_key=${MARKETSTACK_API_KEY}&symbols=${symbol}`;
+                const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`;
                 const response = await fetch(url);
                 if (!response.ok) {
-                    console.warn(`Could not retrieve price for ${symbol}. Status: ${response.status}`);
+                    console.warn(`Could not retrieve price for ${symbol} from Finnhub. Status: ${response.status}`);
                     return null;
                 }
                 const data = await response.json();
-                if (data && data.data && data.data.length > 0 && data.data[0].close !== null) {
-                    price = data.data[0].close;
+                // Finnhub returns the current price in the 'c' field.
+                // It might return 0 if the market is closed, so we check for that.
+                if (data && data.c !== undefined && data.c !== null) {
+                    price = data.c;
                 } else {
-                    console.warn(`Marketstack API returned no price data for ${symbol}.`, data);
+                    console.warn(`Finnhub API returned no price data for ${symbol}.`, data);
                 }
             } catch (error) {
-                console.error(`Error fetching stock price for ${symbol}:`, error);
+                console.error(`Error fetching stock price for ${symbol} from Finnhub:`, error);
             }
         }
 
-        // --- Caching the result, regardless of the source ---
+        // --- Caching the result, regardless of the source (no changes here) ---
         if (price !== null) {
             const newCacheData = { price: price, timestamp: now };
             inMemoryStockCache[symbol] = newCacheData;
@@ -106,6 +108,7 @@ export async function fetchStockPrice(symbol) {
  * Fetches the exchange rate. This function remains unchanged.
  */
 export async function fetchExchangeRate(fromCurrency, dateString) {
+    // ... (no changes in this function)
     if (!fromCurrency) return null;
     const cacheKey = `${fromCurrency}_${dateString}`;
     const exchangeRateCache = {}; 

@@ -7,7 +7,7 @@ import { renderInvestmentGoal } from './InvestmentGoal.js';
 import { renderRecords } from './Records.js';
 import { PerformanceSnapshot } from './PerformanceSnapshot.js';
 import { calculateTotalCapital } from '../services/capitalService.js';
-import { updateAndFetchRecords } from '../services/recordsService.js';
+import { updateAndFetchRecords, updatePreviousProfitILS } from '../services/recordsService.js';
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 export async function renderDashboardTab(container, unsubscribes) {
@@ -48,11 +48,9 @@ export async function renderDashboardTab(container, unsubscribes) {
         renderDepositProgress(document.getElementById('deposit-progress-component'));
         renderInvestmentGoal(document.getElementById('investments-goal-component'));
         renderInvestmentBreakdown(document.getElementById('investment-breakdown-component'), unsubscribes);
-        
-        // הסרתי את הקריאה לפונקציה הבעייתית לעת עתה
-        // const functions = getFunctions();
-        // const updateProfitFunction = httpsCallable(functions, 'updatePreviousProfit');
-        // updateProfitFunction({ currentProfit: capitalData.totalProfitLossILS });
+
+        // עדכן את הרווח הקודם אחרי הצגת הדשבורד
+        await updatePreviousProfitILS(capitalData.totalProfitLossILS);
 
     } catch (error) {
         console.error("Failed to render dashboard:", error);
