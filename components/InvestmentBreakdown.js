@@ -20,6 +20,15 @@ export function renderInvestmentBreakdown(container) {
     async function updateView() {
         const capitalData = await calculateTotalCapital();
         const profitClass = capitalData.totalProfitLossILS >= 0 ? 'profit-positive' : 'profit-negative';
+
+        // חישוב אחוז הרווח
+        const profitPercentageILS = capitalData.totalInvestedCostILS !== 0
+            ? (capitalData.totalProfitLossILS / capitalData.totalInvestedCostILS) * 100
+            : 0;
+
+        const profitPercentageUSD = capitalData.totalInvestedCostUSD !== 0
+            ? (capitalData.totalProfitLossUSD / capitalData.totalInvestedCostUSD) * 100
+            : 0;
         
         listContainer.innerHTML = `
             <div class="breakdown-item">
@@ -41,6 +50,11 @@ export function renderInvestmentBreakdown(container) {
                 <span class="label">סה"כ רווח/הפסד</span>
                 <span>${capitalData.totalProfitLossILS.toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
                 <span>${capitalData.totalProfitLossUSD.toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
+            </div>
+            <div class="breakdown-item ${profitClass}">
+                <span class="label">אחוז רווח/הפסד</span>
+                <span>${profitPercentageILS.toFixed(1)}%</span>
+                <span>${profitPercentageUSD.toFixed(1)}%</span>
             </div>
             <div class="breakdown-item total">
                 <span class="label">שווי התיק הכולל</span>

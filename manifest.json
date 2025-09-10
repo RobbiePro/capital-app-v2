@@ -1,0 +1,20 @@
+{
+    "short_name": "Capital",
+    "name": "Capital App",
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#1c1c1e",
+    "background_color": "#1c1c1e",
+    "icons": [
+        {
+            "src": "/build/apple-touch-icon.png",
+            "type": "image/png",
+            "sizes": "180x180"
+        },
+        {
+            "src": "/build/favicon.png",
+            "type": "image/png",
+            "sizes": "64x64 32x32 24x24 16x16"
+        }
+    ]
+}
